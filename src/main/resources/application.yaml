@@ -1,0 +1,24 @@
+discord:
+  guildid: 879851012515573840
+  token: ODc1ODQxMjM2NzY5MDU4ODQ4.YRbYtw.LH6v-vlHko5PntB3rIZzc-cAqy8
+  roles:
+    admin: 879852370123710504
+
+spring:
+  application:
+    name: teller-bot
+  datasource:
+    url: jdbc:h2:file:~/ticket-db;DB_CLOSE_ON_EXIT=FALSE
+    driverClassName: org.h2.Driver
+    username: sa
+    password: password
+  jpa:
+    defer-datasource-initialization: true
+    hibernate:
+      ddl-auto: create
+      naming:
+        physical-strategy: org.springframework.boot.orm.jpa.hibernate.SpringPhysicalNamingStrategy
+
+server:
+  port: 8080
+
