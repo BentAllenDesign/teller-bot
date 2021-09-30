@@ -1,14 +1,16 @@
 package com.bad.studios.tellerbot.repos;
 
-import com.bad.studios.tellerbot.models.Ticket;
+import com.bad.studios.tellerbot.models.UserData;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 
+import java.util.List;
 import java.util.Optional;
 
 @Repository
-public interface TicketRepo extends JpaRepository<Ticket, String> {
+public interface TicketRepo extends JpaRepository<UserData, String> {
 
-    Optional<Ticket> findByMentionString(String mentionString);
+    Optional<UserData> findByMentionString(String mentionString);
+    List<UserData> findAllByOrderByTicketsDesc();
 
 }

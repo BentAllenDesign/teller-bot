@@ -6,29 +6,29 @@ import discord4j.discordjson.possible.Possible;
 import discord4j.rest.util.ApplicationCommandOptionType;
 import org.springframework.stereotype.Component;
 
-import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
 
 @Component
-public class ReadTicketsByIdCommand implements ApplicationCommandRequest {
+public class CreateRaffleEntryCommand implements ApplicationCommandRequest {
 
     @Override
     public String name() {
-        return "get-user-tickets";
+        return "add-raffle-entries";
     }
 
     @Override
     public String description() {
-        return "View tickets given to a specific user";
+        return "Adds n raffle entries";
     }
 
     @Override
     public Possible<List<ApplicationCommandOptionData>> options() {
-        return Possible.of(Arrays.asList(
+        return Possible.of(Collections.singletonList(
                 ApplicationCommandOptionData.builder()
-                        .name("user")
-                        .description("User to get tickets from")
-                        .type(ApplicationCommandOptionType.USER.getValue())
+                        .name("amount")
+                        .description("Number of tickets to wager")
+                        .type(ApplicationCommandOptionType.INTEGER.getValue())
                         .required(true)
                         .build()
         ));
@@ -39,4 +39,3 @@ public class ReadTicketsByIdCommand implements ApplicationCommandRequest {
         return Possible.of(true);
     }
 }
-

@@ -1,14 +1,19 @@
 package com.bad.studios.tellerbot.utils;
 
 import com.bad.studios.tellerbot.config.BotConfig;
+import discord4j.core.object.Embed;
 import discord4j.core.object.entity.Message;
 import discord4j.core.object.entity.User;
+import discord4j.core.spec.EmbedCreateFields;
 import discord4j.core.spec.EmbedCreateSpec;
 import discord4j.core.spec.legacy.LegacyEmbedCreateSpec;
+import discord4j.discordjson.json.EmbedData;
+import discord4j.discordjson.json.EmbedFieldData;
 import discord4j.rest.util.Color;
 import lombok.*;
 import org.javatuples.Triplet;
 import org.springframework.messaging.MessageChannel;
+import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
 import java.time.Instant;
@@ -16,6 +21,8 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
+
+import static discord4j.core.spec.EmbedCreateFields.Field;
 
 public class Embeds {
 
@@ -55,78 +62,128 @@ public class Embeds {
 
     }
 
-    public static Mono<Void> sendEmbedToChannel(Mono<Message> filteredMessage, User user, String title, String description, String footer, List<Triplet<String, String, Boolean>> fields) {
-        return filteredMessage
-                .flatMap(Message::getChannel)
-                .flatMap(c -> c.createEmbed(spec -> Embeds.infoEmbed(
-                        spec,
-                        user,
-                        new Embeds.EmbedContents(
-                                "",
-                                "",
-                                "",
-                                new ArrayList<>()
-                        )
-                )))
-                .then();
+    public static EmbedCreateSpec infoEmbed(String title, String description) {
+        return EmbedCreateSpec.builder()
+                .color(Color.of(66, 133, 244))
+                .title(title)
+                .description(description)
+                .build();
     }
 
-    public static LegacyEmbedCreateSpec errorEmbed(LegacyEmbedCreateSpec spec, Message message, Exception exception) {
-        StackTraceElement stackTrace = exception.getStackTrace()[0];
+    public static EmbedData infoEmbedData(String title, String description) {
+        return EmbedData.builder()
+                .color(Color.of(66, 133, 244).getRGB())
+                .title(title)
+                .description(description)
+                .build();
+    }
+
+    public static EmbedCreateSpec infoEmbed(String title, String description, List<Field> fields) {
+        return EmbedCreateSpec.builder()
+                .color(Color.of(66, 133, 244))
+                .title(title)
+                .description(description)
+                .addAllFields(fields)
+                .build();
+    }
+
+    public static EmbedCreateSpec infoEmbed(List<Field> fields) {
+        return EmbedCreateSpec.builder()
+                .color(Color.of(66, 133, 244))
+                .addAllFields(fields)
+                .build();
+    }
+
+    public static EmbedCreateSpec dangerEmbed(String title, String description) {
+        return EmbedCreateSpec.builder()
+                .color(Color.of(234, 67, 53))
+                .title(title)
+                .description(description)
+                .build();
+    }
+
+    public static EmbedData dangerEmbedData(String title, String description) {
+        return EmbedData.builder()
+                .color(Color.of(234, 67, 53).getRGB())
+                .title(title)
+                .description(description)
+                .build();
+    }
+
+    public static EmbedData dangerEmbedData(String title, String description, List<EmbedFieldData> fields) {
+        return EmbedData.builder()
+                .color(Color.of(234, 67, 53).getRGB())
+                .title(title)
+                .description(description)
+                .addAllFields(fields)
+                .build();
+    }
+
+    public static EmbedCreateSpec dangerEmbed(String title, String description, List<Field> fields) {
+        return EmbedCreateSpec.builder()
+                .color(Color.of(234, 67, 53))
+                .title(title)
+                .description(description)
+                .addAllFields(fields)
+                .build();
+    }
+
+    public static EmbedCreateSpec successEmbed(String title, String description, List<Field> fields) {
+        return EmbedCreateSpec.builder()
+                .color(Color.of(52, 168, 83))
+                .title(title)
+                .description(description)
+                .addAllFields(fields)
+                .build();
+    }
+
+    public static EmbedCreateSpec successEmbed(String title, String description) {
+        return EmbedCreateSpec.builder()
+                .color(Color.of(52, 168, 83))
+                .title(title)
+                .description(description)
+                .build();
+    }
+
+    public static EmbedCreateSpec warningEmbed(String title, String description) {
+        return EmbedCreateSpec.builder()
+                .color(Color.of(251, 188, 5))
+                .title(title)
+                .description(description)
+                .build();
+    }
+
+    public static EmbedData warningEmbedData(String title, String description) {
+        return EmbedData.builder()
+                .color(Color.of(251, 188, 5).getRGB())
+                .title(title)
+                .description(description)
+                .build();
+    }
+
+    public static EmbedCreateSpec warningEmbed(String title, String description, List<Field> fields) {
+        return EmbedCreateSpec.builder()
+                .color(Color.of(251, 188, 5))
+                .title(title)
+                .description(description)
+                .addAllFields(fields)
+                .build();
+    }
+
+    public static EmbedCreateSpec errorEmbed(String reason) {
         return dangerEmbed(
-                                spec,
-                                message.getAuthor().get(),
-                                new EmbedContents(
-                                        "Oops!",
-                                        "Seems like we ran into some trouble with this command string:\n" + message.getContent(),
-                                        "Reported",
-                                        Collections.singletonList(Triplet.with(
-                                                "Exception",
-                                                stackTrace.getFileName() + "\n" +
-                                                        stackTrace.getMethodName() + " :: Line " +
-                                                        stackTrace.getLineNumber() + "\n" +
-                                                        "***" + exception.getMessage() + "***",
-                                                false
-                                        ))
-                                )
-                        );
+                "(╯°□°）╯︵ ┻━┻",
+                "Seems like we had an issue with that command!",
+                Collections.singletonList(Field.of("Reason", reason, false))
+        );
     }
 
-    public static Mono<Void> errorEmbed(Message message, Throwable exception) {
-        return Mono.just(message)
-                .flatMap(Message::getChannel)
-                .flatMap(c -> c.createEmbed( spec ->
-                        dangerEmbed(
-                                spec,
-                                message.getAuthor().get(),
-                                new EmbedContents(
-                                        "Oops!",
-                                        "Seems like we ran into some trouble with this command:\n" + message,
-                                        "Reported",
-                                        Collections.singletonList(Triplet.with(
-                                                "Exception",
-                                                exception.getMessage(),
-                                                false
-                                        ))
-                                )
-                        )
-                ))
-                .then();
-    }
-
-    public static LegacyEmbedCreateSpec successEmbed(LegacyEmbedCreateSpec spec, User user, EmbedContents contents) {
-        return setContents(spec, user, contents)
-                .setColor(Color.MEDIUM_SEA_GREEN);
-    }
-
-    public static LegacyEmbedCreateSpec dangerEmbed(LegacyEmbedCreateSpec spec, User user, EmbedContents contents) {
-        return setContents(spec, user, contents)
-                .setColor(Color.JAZZBERRY_JAM);
-    }
-
-    public static LegacyEmbedCreateSpec infoEmbed(LegacyEmbedCreateSpec spec, User user, EmbedContents contents) {
-        return setContents(spec, user, contents)
-                .setColor(Color.of(56, 128, 235));
+    public static EmbedData errorEmbedData(String reason) {
+        return dangerEmbedData(
+                "(╯°□°）╯︵ ┻━┻",
+                "Seems like we had an issue with that command!",
+                Collections.singletonList(EmbedFieldData.builder().name("Reason").value(reason).inline(false).build())
+        );
     }
 
     private static LegacyEmbedCreateSpec setContents(LegacyEmbedCreateSpec spec, User user, EmbedContents contents) {

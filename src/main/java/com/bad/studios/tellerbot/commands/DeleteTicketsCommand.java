@@ -10,16 +10,16 @@ import java.util.Arrays;
 import java.util.List;
 
 @Component
-public class ReadTicketsByIdCommand implements ApplicationCommandRequest {
+public class DeleteTicketsCommand implements ApplicationCommandRequest {
 
     @Override
     public String name() {
-        return "get-user-tickets";
+        return "remove-tickets";
     }
 
     @Override
     public String description() {
-        return "View tickets given to a specific user";
+        return "Removes tickets from a particular user";
     }
 
     @Override
@@ -27,9 +27,21 @@ public class ReadTicketsByIdCommand implements ApplicationCommandRequest {
         return Possible.of(Arrays.asList(
                 ApplicationCommandOptionData.builder()
                         .name("user")
-                        .description("User to get tickets from")
+                        .description("User to remove tickets from")
                         .type(ApplicationCommandOptionType.USER.getValue())
                         .required(true)
+                        .build(),
+                ApplicationCommandOptionData.builder()
+                        .name("amount")
+                        .description("Number of tickets to remove from user")
+                        .type(ApplicationCommandOptionType.INTEGER.getValue())
+                        .required(true)
+                        .build(),
+                ApplicationCommandOptionData.builder()
+                        .name("reason")
+                        .description("Reason for removing tickets from user")
+                        .type(ApplicationCommandOptionType.STRING.getValue())
+                        .required(false)
                         .build()
         ));
     }
@@ -39,4 +51,3 @@ public class ReadTicketsByIdCommand implements ApplicationCommandRequest {
         return Possible.of(true);
     }
 }
-

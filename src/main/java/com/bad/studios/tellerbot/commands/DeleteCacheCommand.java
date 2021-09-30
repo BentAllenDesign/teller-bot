@@ -9,16 +9,16 @@ import java.util.Collections;
 import java.util.List;
 
 @Component
-public class ReadAllTicketsCommand implements ApplicationCommandRequest {
+public class DeleteCacheCommand implements ApplicationCommandRequest {
 
     @Override
     public String name() {
-        return "get-all-tickets";
+        return "clear-cache";
     }
 
     @Override
     public String description() {
-        return "View list of all users and their tickets";
+        return "Clears the bot's cache in the case of slow behavior";
     }
 
     @Override

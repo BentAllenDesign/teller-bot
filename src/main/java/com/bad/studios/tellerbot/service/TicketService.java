@@ -1,17 +1,16 @@
 package com.bad.studios.tellerbot.service;
 
-import com.bad.studios.tellerbot.models.Ticket;
+import com.bad.studios.tellerbot.models.UserData;
 import com.bad.studios.tellerbot.repos.TicketRepo;
-import discord4j.common.util.Snowflake;
-import discord4j.core.GatewayDiscordClient;
 import lombok.var;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.cache.annotation.CacheEvict;
+import org.springframework.cache.annotation.CachePut;
+import org.springframework.cache.annotation.Cacheable;
+import org.springframework.cache.annotation.Caching;
 import org.springframework.stereotype.Service;
 
-import javax.persistence.EntityNotFoundException;
 import java.util.List;
-import java.util.Optional;
-import java.util.function.Supplier;
 
 @Service
 public class TicketService {
@@ -23,38 +22,56 @@ public class TicketService {
         this.repo = repo;
     }
 
-    public Ticket saveTickets(Ticket ticket) {
-        var updateCheck = repo.findById(ticket.getId());
-        if(updateCheck.isPresent()) {
-            Ticket oldTicket = updateCheck.get();
-            oldTicket.setTickets(oldTicket.getTickets() + ticket.getTickets());
-            return repo.save(oldTicket);
-        }
-        return repo.save(ticket);
+    @Caching(
+            put = @CachePut(value = "user", key = "#result.id"),
+            evict = @CacheEvict(value = "users", allEntries = true)
+    )
+    public UserData createUserData(UserData userData) {
+        return repo.save(userData);
     }
 
-    /*public Ticket updateTicketDetail(Ticket ticket) {
-        return repo.save(ticket);
-    }*/
+    @Caching(
+            put = @CachePut(value = "user", key = "#id"),
+            evict = @CacheEvict(value = "users", allEntries = true)
+    )
+    public UserData addTicketsToUser(String id, Integer amount) {
+        var user = repo.findById(id).orElseThrow(() -> new RuntimeException("User with id " + id + " could not be found in the database"));
+        if(user == null)
+            return null;
 
-    public List<Ticket> getAllTickets() {
-        return repo.findAll();
+        return repo.save(user.setTickets(user.getTickets() + Math.abs(amount)));
     }
 
-    public Ticket getTicketsByUserMention(String mention) throws Exception {
-        return repo.findByMentionString(mention).orElseThrow((Supplier<Exception>) () -> new EntityNotFoundException("Could not find ticket object by supplied mention string: " + mention));
+    @Caching(
+            put = @CachePut(value = "user", key = "#id"),
+            evict = @CacheEvict(value = "users", allEntries = true)
+    )
+    public UserData removeTicketsFromUser(String id, Integer amount) {
+        var user = repo.findById(id).orElseThrow(() -> new RuntimeException("User with id " + id + " could not be found in the database"));
+        if(user == null)
+            return null;
+
+        return repo.save(user.setTickets(Math.max(0, user.getTickets() - Math.abs(amount))));
     }
 
-    public Ticket getTicketsByUserId(String id) throws Exception {
-        return repo.findById(id).orElseThrow((Supplier<Exception>) () -> new EntityNotFoundException("Could not find ticket object by supplied user id: " + id));
+    @Cacheable(cacheNames = "users", unless = "#result==null")
+    public List<UserData> getAllUserData() {
+        return repo.findAllByOrderByTicketsDesc();
     }
 
-    public Optional<Ticket> getOptionalTicketsById(String id) {
-        return repo.findById(id);
+    @Cacheable(cacheNames = "user", key = "#id", unless = "#result==null")
+    public UserData getUserData(String id) {
+        return repo.findById(id).orElseThrow(() -> new RuntimeException("User with id " + id + " could not be found in the database"));
     }
 
-    public Ticket updateTicket(Ticket ticket) throws Exception {
-        var updateCheck = repo.findById(ticket.getId()).orElseThrow((Supplier<Exception>) () -> new EntityNotFoundException("Could not find ticket object by supplied user id: " + ticket.getId()));
-        return repo.save(ticket);
+    @Caching(
+            put = @CachePut(value = "user", key = "#result.id"),
+            evict = @CacheEvict(value = "users", allEntries = true)
+    )
+    public UserData updateUser(UserData userData) {
+        var updateCheck = repo.findById(userData.getId());
+        if(updateCheck.isPresent())
+            return repo.save(userData);
+        return null;
     }
 }

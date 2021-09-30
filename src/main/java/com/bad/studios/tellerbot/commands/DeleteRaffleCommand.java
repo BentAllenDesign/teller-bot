@@ -9,16 +9,16 @@ import java.util.Collections;
 import java.util.List;
 
 @Component
-public class ReadAllTicketsCommand implements ApplicationCommandRequest {
+public class DeleteRaffleCommand implements ApplicationCommandRequest {
 
     @Override
     public String name() {
-        return "get-all-tickets";
+        return "delete-raffle";
     }
 
     @Override
     public String description() {
-        return "View list of all users and their tickets";
+        return "Deletes a raffle";
     }
 
     @Override

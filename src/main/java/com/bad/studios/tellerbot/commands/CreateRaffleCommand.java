@@ -6,43 +6,42 @@ import discord4j.discordjson.possible.Possible;
 import discord4j.rest.util.ApplicationCommandOptionType;
 import org.springframework.stereotype.Component;
 
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
 @Component
-public class CreateTicketsCommand implements ApplicationCommandRequest {
+public class CreateRaffleCommand implements ApplicationCommandRequest {
 
     @Override
     public String name() {
-        return "add-tickets";
+        return "create-raffle";
     }
 
     @Override
     public String description() {
-        return "Award tickets to a user";
+        return "Creates a raffle";
     }
 
     @Override
     public Possible<List<ApplicationCommandOptionData>> options() {
         return Possible.of(Arrays.asList(
                 ApplicationCommandOptionData.builder()
-                        .name("user")
-                        .description("User to award tickets to")
-                        .type(ApplicationCommandOptionType.USER.getValue())
+                        .name("title")
+                        .description("Raffle title")
+                        .type(ApplicationCommandOptionType.STRING.getValue())
                         .required(true)
                         .build(),
                 ApplicationCommandOptionData.builder()
-                        .name("amount")
-                        .description("Number of tickets to award user")
+                        .name("description")
+                    .description("Raffle description")
+                        .type(ApplicationCommandOptionType.STRING.getValue())
+                        .required(true)
+                        .build(),
+                ApplicationCommandOptionData.builder()
+                        .name("time")
+                        .description("Length of the raffle in minutes")
                         .type(ApplicationCommandOptionType.INTEGER.getValue())
                         .required(true)
-                        .build(),
-                ApplicationCommandOptionData.builder()
-                        .name("reason")
-                        .description("Reason for awarding tickets")
-                        .type(ApplicationCommandOptionType.STRING.getValue())
-                        .required(false)
                         .build()
         ));
     }

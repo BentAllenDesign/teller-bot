@@ -9,16 +9,16 @@ import java.util.Collections;
 import java.util.List;
 
 @Component
-public class ReadAllTicketsCommand implements ApplicationCommandRequest {
+public class HelpCommand implements ApplicationCommandRequest {
 
     @Override
     public String name() {
-        return "get-all-tickets";
+        return "help";
     }
 
     @Override
     public String description() {
-        return "View list of all users and their tickets";
+        return "List available crud commands";
     }
 
     @Override

@@ -3,10 +3,8 @@ package com.bad.studios.tellerbot.commands;
 import discord4j.discordjson.json.ApplicationCommandOptionData;
 import discord4j.discordjson.json.ApplicationCommandRequest;
 import discord4j.discordjson.possible.Possible;
-import discord4j.rest.util.ApplicationCommandOptionType;
 import org.springframework.stereotype.Component;
 
-import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 
@@ -15,12 +13,12 @@ public class ReadTicketsCommand implements ApplicationCommandRequest {
 
     @Override
     public String name() {
-        return "read-tickets";
+        return "get-my-tickets";
     }
 
     @Override
     public String description() {
-        return "Read tickets given to self";
+        return "View tickets given to self";
     }
 
     @Override

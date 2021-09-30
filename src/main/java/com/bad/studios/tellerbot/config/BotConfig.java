@@ -1,13 +1,18 @@
 package com.bad.studios.tellerbot.config;
 
+import com.bad.studios.tellerbot.models.UserData;
+import com.bad.studios.tellerbot.service.TicketService;
 import discord4j.common.util.Snowflake;
 import discord4j.core.DiscordClientBuilder;
 import discord4j.core.GatewayDiscordClient;
 import discord4j.core.event.ReactiveEventAdapter;
 import discord4j.core.event.domain.Event;
+import discord4j.core.event.domain.lifecycle.ReadyEvent;
 import discord4j.discordjson.json.ApplicationCommandRequest;
+import discord4j.gateway.intent.IntentSet;
 import discord4j.rest.RestClient;
 import lombok.var;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -31,98 +36,77 @@ public class BotConfig {
     private String token;
     @Value("${discord.guildid}")
     private String guildId;
+    @Value("${discord.logchannel}")
+    private String logChannelId;
+
+    @Autowired
+    private TicketService ticketService;
 
     @Bean
-    public <T extends Event> GatewayDiscordClient gatewayDiscordClient(List<ReactiveEventAdapter> eventListeners, List<ApplicationCommandRequest> commandRequestList) {
+    public <T extends Event> GatewayDiscordClient gatewayDiscordClient(List<ReactiveEventAdapter> slashListeners, List<ApplicationCommandRequest> commandRequestList) {
 
         GatewayDiscordClient client = DiscordClientBuilder.create(token)
                 .build()
+                .gateway()
+                .setEnabledIntents(IntentSet.all())
                 .login()
                 .block();
 
         RestClient restClient = client.getRestClient();
         long appId = restClient.getApplicationId().block();
 
-        restClient.getApplicationService().getGlobalApplicationCommands(appId)
-                .map(x -> restClient.getApplicationService().deleteGlobalApplicationCommand(appId, Long.parseLong(x.id())))
-                .subscribe();
+        // TODO: Factor in a way to check if update/delete flag has been raised on a command and run delete and create in response
+        /*System.out.println("Grabbing list of present guilds");
+        var guilds = client.getGuilds().collectList().block();
+        if(guilds != null)
+            guilds.forEach(x -> {
+                System.out.println("Scanning guild " + x.getName() + " for commands to remove");
+                restClient.getApplicationService().getGuildApplicationCommands(appId, x.getId().asLong())
+                        .flatMap(y -> {
+                            System.out.println("Deleting command " + y.name() + " in guild " + x.getName());
+                            return restClient.getApplicationService()
+                                    .deleteGuildApplicationCommand(appId, x.getId().asLong(), Long.parseLong(y.id()));
+                        })
+                        .blockLast();
+            });*/
 
-        for(ApplicationCommandRequest request : commandRequestList) {
+        client.on(ReadyEvent.class)
+                .subscribe(e -> {
+                    client.getGuildMembers(Snowflake.of(guildId))
+                            .filter(x -> !x.isBot() && ticketService.getUserData(x.getId().asString()) == null)
+                            .map(x -> ticketService.createUserData(new UserData(
+                                    x,
+                                    0
+                            )))
+                            .blockLast();
+                });
 
-            ApplicationCommandRequest command = ApplicationCommandRequest.builder()
+        var discordGuildCommands = restClient.getApplicationService()
+                .getGuildApplicationCommands(appId, Long.parseLong(guildId))
+                .collectList()
+                .block();
+
+        commandRequestList.forEach(request -> {
+            System.out.println("Loading command data for " + request.name() + "...");
+            if (discordGuildCommands != null && discordGuildCommands.stream().noneMatch(x -> x.name().equals(request.name()))) {
+                ApplicationCommandRequest command = ApplicationCommandRequest.builder()
                     .name(request.name())
                     .description(request.description())
                     .addAllOptions(request.options().get())
                     .build();
-
-            restClient.getApplicationService()
+                restClient.getApplicationService()
                     .createGuildApplicationCommand(appId, Snowflake.asLong(guildId), command)
                     .doOnError(e -> log.warn("Unable to create guild command", e))
                     .onErrorResume(e -> Mono.empty())
                     .block();
-        }
+            }
+            System.out.println(request.name() + " command data loaded");
+        });
 
-        for(ReactiveEventAdapter listener : eventListeners) {
-            client.on(listener).subscribe();
-        }
+        slashListeners.forEach(x ->
+                client.on(x).subscribe()
+        );
 
         return client;
-
-        /*if(client != null) {
-
-            ApplicationCommandRequest randomCommand = ApplicationCommandRequest.builder()
-                    .name("random")
-                    .description("Send a random number")
-                    .addOption(ApplicationCommandOptionData.builder()
-                            .name("digits")
-                            .description("Number of digits")
-                            .type(ApplicationCommandOptionType.INTEGER.getValue())
-                            .required(false)
-                            .build())
-                    .build();
-
-            RestClient restClient = client.getRestClient();
-            long appId = restClient.getApplicationId().block();
-            guildId.set(guild);
-
-            restClient.getApplicationService()
-                    .createGuildApplicationCommand(appId, Snowflake.asLong(guildId.get()), randomCommand)
-                    .doOnError(e -> log.warn("Unable to create global command", e))
-                    .onErrorResume(e -> Mono.empty())
-                    .block();
-
-            client.on(ReadyEvent.class)
-                    .subscribe(e -> {
-                        final User self = e.getSelf();
-                        footerPicUri.set(self.getAvatarUrl());
-                        System.out.printf(
-                                "Logged in as %s#%s%n", self.getUsername(), self.getDiscriminator()
-                        );
-                    });
-
-
-            for(EventListener<T> listener : eventListeners) {
-                client.on(listener.getEventType())
-                        .flatMap(listener::execute)
-                        .onErrorResume(listener::handleError)
-                        .subscribe();
-            }
-
-            client.on(new ReactiveEventAdapter() {
-                private final Random random = new Random();
-                @Override
-                public Publisher<?> onSlashCommand(SlashCommandEvent event) {
-                    if (event.getCommandName().equals("random")) {
-                        String result = result(random, event.getInteraction().getCommandInteraction().get());
-                        return event.reply(result);
-                    }
-                    return Mono.empty();
-                }
-            }).blockLast();
-
-            return client;
-        }
-
-        return null;*/
     }
 }

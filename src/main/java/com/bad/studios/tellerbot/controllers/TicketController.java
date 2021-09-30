@@ -1,6 +1,6 @@
 package com.bad.studios.tellerbot.controllers;
 
-import com.bad.studios.tellerbot.models.Ticket;
+import com.bad.studios.tellerbot.models.UserData;
 import com.bad.studios.tellerbot.service.TicketService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -11,7 +11,7 @@ import org.springframework.web.bind.annotation.RestController;
 import java.util.List;
 
 @RestController
-@RequestMapping("/api/v1/tickets")
+@RequestMapping("/tickets")
 public class TicketController {
 
     private TicketService service;
@@ -22,18 +22,13 @@ public class TicketController {
     }
 
     @GetMapping
-    public List<Ticket> getAllTickets() {
-        return service.getAllTickets();
-    }
-
-    @GetMapping("/mention/{mention}")
-    public Ticket getTicketsByUserMention(@PathVariable("mention") String mention) throws Throwable {
-        return service.getTicketsByUserMention(mention);
+    public List<UserData> getAllTickets() {
+        return service.getAllUserData();
     }
 
     @GetMapping("/id/{id}")
-    public Ticket getTicketsByUserId(@PathVariable("id") String id) throws Throwable {
-        return service.getTicketsByUserId(id);
+    public UserData getUserData(@PathVariable("id") String id) throws Throwable {
+        return service.getUserData(id);
     }
 
 
