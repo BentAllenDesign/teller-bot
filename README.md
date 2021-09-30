@@ -1,3 +1,3 @@
-# teller-bot
+# Ticket Bot
 
 Readme coming soon
