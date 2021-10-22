@@ -2,6 +2,7 @@ package com.bad.studios.tellerbot.events;
 
 import com.bad.studios.tellerbot.utils.Embeds;
 import discord4j.common.util.Snowflake;
+import discord4j.core.event.domain.guild.MemberJoinEvent;
 import discord4j.core.event.domain.guild.MemberUpdateEvent;
 import discord4j.core.event.domain.interaction.ButtonInteractEvent;
 import discord4j.core.event.domain.interaction.SlashCommandEvent;
@@ -12,6 +13,7 @@ import org.reactivestreams.Publisher;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.PropertySource;
 import org.springframework.stereotype.Component;
+import reactor.core.publisher.Mono;
 
 import java.util.Collections;
 
@@ -38,6 +40,18 @@ public class LogEvent {
         return event.reply()
                 .withEphemeral(true)
                 .withEmbeds(Embeds.errorEmbed(message));
+    }
+
+    public Publisher<?> logError(MemberJoinEvent event) {
+
+        var channel = event.getClient().getChannelById(Snowflake.of(logChannelId)).cast(TextChannel.class).block();
+        channel.createMessage(Embeds.dangerEmbed(
+                "Error with user: " + event.getMember().getUsername(),
+                "Failed to add them to the database",
+                Collections.emptyList()
+        )).block();
+
+        return Mono.empty();
     }
 
     public Publisher<?> logInfo(SlashCommandEvent event, String logMessage, Publisher<?> reply) {
@@ -68,11 +82,31 @@ public class LogEvent {
         return reply;
     }
 
-    public Publisher<?> logWarning(SlashCommandEvent event, String logMessage, Publisher<?> reply) {
+    public Publisher<?> logSuccessReason(SlashCommandEvent event, String logMessage, String reason, Publisher<?> reply) {
+        var channel = event.getClient().getChannelById(Snowflake.of(logChannelId)).cast(TextChannel.class).block();
+        channel.createMessage(Embeds.successEmbed(
+                logMessage,
+                "** **",
+                Collections.singletonList(EmbedCreateFields.Field.of(
+                        "Reason",
+                        reason,
+                        true
+                ))
+        )).block();
+
+        return reply;
+    }
+
+    public Publisher<?> logWarningReason(SlashCommandEvent event, String logMessage, String reason, Publisher<?> reply) {
         var channel = event.getClient().getChannelById(Snowflake.of(logChannelId)).cast(TextChannel.class).block();
         channel.createMessage(Embeds.warningEmbed(
                 logMessage,
-                "** **"
+                "** **",
+                Collections.singletonList(EmbedCreateFields.Field.of(
+                        "Reason",
+                        reason,
+                        true
+                ))
         )).block();
 
         return reply;

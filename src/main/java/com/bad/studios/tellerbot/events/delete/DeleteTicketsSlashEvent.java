@@ -53,6 +53,8 @@ public class DeleteTicketsSlashEvent extends ReactiveEventAdapter {
 
         /* OPTIONAL OPTIONS */
         val reason = event.getOption("reason");
+        val reasonValue = reason.map(applicationCommandInteractionOptionValue ->
+                applicationCommandInteractionOptionValue.getValue().get().getRaw()).orElse("No reason provided");
 
         /* ACCESS LOGIC */
         val user = ticketService.getUserData(userInput.getId().asString());
@@ -66,9 +68,10 @@ public class DeleteTicketsSlashEvent extends ReactiveEventAdapter {
         val netLossClamped = Math.min(user.getTickets(), amount);
 
         /* INTENDED EVENT RESPONSE */
-        return logEvent.logWarning(
+        return logEvent.logWarningReason(
                 event,
                 user.getPreferredName() + " has lost " + netLossClamped + " ticket" + (netLossClamped != 1 ? "s" : ""),
+                reasonValue,
                 event.reply()
                         .withEphemeral(true)
                         .withEmbeds(
