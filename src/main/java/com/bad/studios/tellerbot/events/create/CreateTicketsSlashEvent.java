@@ -57,6 +57,8 @@ public class CreateTicketsSlashEvent extends ReactiveEventAdapter {
 
         /* OPTIONAL OPTIONS */
         val reason = event.getOption("reason");
+        val reasonValue = reason.map(applicationCommandInteractionOptionValue ->
+                applicationCommandInteractionOptionValue.getValue().get().getRaw()).orElse("No reason provided");
 
         /* ACCESS LOGIC */
         var savedUser = ticketService.getUserData(userInput.getId().asString());
@@ -68,9 +70,10 @@ public class CreateTicketsSlashEvent extends ReactiveEventAdapter {
             return logEvent.logError(event, "Failed to save ticket information");
 
         /* INTENDED EVENT RESPONSE */
-        return logEvent.logSuccess(
+        return logEvent.logSuccessReason(
                 event,
                 savedUser.getPreferredName() + " was given " + amount + " ticket" + (amount != 1 ? "s" : ""),
+                reasonValue,
                 event.reply().withEmbeds(
                         Embeds.successEmbed(
                                 "Nice!",

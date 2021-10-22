@@ -1,12 +1,46 @@
+
+# LOCAL CONFIGURATION
+
+# Once you're in developer mode on Discord, you'll be able to
+# right click on most elements to grab the ID (roles, messages, etc).
+# Paste the IDs in their respective slots below in order to
+# configure the environment for local testing. I highly recommend
+# making a second dedicated testing server so that you don't trigger
+# events twice in the main server. Spinning this up locally will
+# not affect the deployed production instance.
 discord:
-  logchannel: ${LOG_CHANNEL_ID}
-  rafflechannel: ${RAFFLE_CHANNEL_ID}
-  guildid: ${GUILD_ID}
-  token: ${DISCORD_BOT_TOKEN}
+  logchannel: # LOG CHANNEL ID
+  rafflechannel: # RAFFLE CHANNEL ID
+  guildid: # GUILD ID
+  token: # BOT TOKEN
   roles:
-    admin: ${ADMIN_ROLES}
+    admin: # ADMIN ROLE IDS
 
 spring:
+  application:
+    name: teller-bot
+  datasource:
+    driverClassName: com.mysql.cj.jdbc.Driver
+    url: jdbc:mysql://b2f1418cea4633:f16a652e@us-cdbr-east-04.cleardb.com/heroku_27025428326aefd?reconnect=true
+    hikari:
+      max-lifetime: 50000
+      maximum-pool-size: 10
+      pool-name: ticket-bot-pool
+  jpa:
+    defer-datasource-initialization: true
+    hibernate:
+      ddl-auto: update
+      naming:
+        physical-strategy: org.springframework.boot.orm.jpa.hibernate.SpringPhysicalNamingStrategy
+
+server:
+  port: 62895
+
+---
+
+spring:
+  profiles:
+    active: prod
   application:
     name: teller-bot
   datasource:
@@ -23,6 +57,14 @@ spring:
       naming:
         physical-strategy: org.springframework.boot.orm.jpa.hibernate.SpringPhysicalNamingStrategy
 
+discord:
+  logchannel: ${LOG_CHANNEL_ID}
+  rafflechannel: ${RAFFLE_CHANNEL_ID}
+  guildid: ${GUILD_ID}
+  token: ${DISCORD_BOT_TOKEN}
+  roles:
+    admin: ${ADMIN_ROLES}
+
 server:
-  port: ${PORT:8080}
+  port: ${PORT}
 

@@ -71,7 +71,8 @@ public class RaffleService {
             evict = {
                     @CacheEvict(value = "raffles_soft", allEntries = true),
                     @CacheEvict(value = "raffles_eager", allEntries = true),
-                    @CacheEvict(value = "raffle_eager", allEntries = true)
+                    @CacheEvict(value = "raffle_eager", allEntries = true),
+                    @CacheEvict(value = "raffle_title", allEntries = true)
             })
     public Raffle createRaffle(Raffle raffle) {
         return raffleRepo.save(raffle);
@@ -111,7 +112,9 @@ public class RaffleService {
             @CacheEvict(value = "raffles_eager", allEntries = true),
             @CacheEvict(value = "raffle_soft", allEntries = true),
             @CacheEvict(value = "raffle_eager", allEntries = true),
-            @CacheEvict(value = "raffle_title", allEntries = true)
+            @CacheEvict(value = "raffle_title", allEntries = true),
+            @CacheEvict(value = "raffle_entries", allEntries = true),
+            @CacheEvict(value = "raffle_entry", key = "#raffleId", allEntries = true)
     })
     public void deleteRaffle(Integer raffleId) {
         raffleRepo.deleteById(raffleId);
@@ -129,9 +132,7 @@ public class RaffleService {
                     @CachePut(value = "raffle_entry", key = "#result.id", unless = "#result==null")
             },
             evict = {
-                    @CacheEvict(value = "raffles_soft", allEntries = true),
                     @CacheEvict(value = "raffles_eager", allEntries = true),
-                    @CacheEvict(value = "raffle_soft", allEntries = true),
                     @CacheEvict(value = "raffle_eager", allEntries = true),
                     @CacheEvict(value = "raffle_entries", allEntries = true)
             })
@@ -151,9 +152,7 @@ public class RaffleService {
     @Caching(
             put = @CachePut(value = "raffle_entry", key = "#entry.id", unless = "#result==null"),
             evict = {
-                    @CacheEvict(value = "raffles_soft", allEntries = true),
                     @CacheEvict(value = "raffles_eager", allEntries = true),
-                    @CacheEvict(value = "raffle_soft", allEntries = true),
                     @CacheEvict(value = "raffle_eager", allEntries = true),
                     @CacheEvict(value = "raffle_entries", allEntries = true)
             }
@@ -163,9 +162,7 @@ public class RaffleService {
     }
 
     @Caching(evict = {
-            @CacheEvict(value = "raffles_soft", allEntries = true),
             @CacheEvict(value = "raffles_eager", allEntries = true),
-            @CacheEvict(value = "raffle_soft", allEntries = true),
             @CacheEvict(value = "raffle_eager", allEntries = true),
             @CacheEvict(value = "raffle_entries", allEntries = true),
             @CacheEvict(value = "raffle_entry", key = "#entry.id")

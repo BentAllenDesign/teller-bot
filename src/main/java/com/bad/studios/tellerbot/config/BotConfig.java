@@ -74,10 +74,13 @@ public class BotConfig {
                 .subscribe(e -> {
                     client.getGuildMembers(Snowflake.of(guildId))
                             .filter(x -> !x.isBot() && ticketService.getUserData(x.getId().asString()) == null)
-                            .map(x -> ticketService.createUserData(new UserData(
-                                    x,
-                                    0
-                            )))
+                            .map(x -> {
+                                System.out.println("adding " + x.getNickname());
+                                return ticketService.createUserData(new UserData(
+                                        x,
+                                        0
+                                ));
+                            })
                             .blockLast();
                 });
 
